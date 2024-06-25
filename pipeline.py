@@ -4,11 +4,13 @@ import random
 import os
 from datetime import datetime
 import subprocess
+import multiprocessing
 
 def parse_arguments():
     parser = argparse.ArgumentParser(description='Pipeline for training and evaluating Hugging Face models.')
     parser.add_argument('--strategies', type=str, nargs='+', choices=['sft', 'dpo', 'kto'], default=['sft', 'dpo', 'kto'], help='Training strategies')
-    parser.add_argument('--use_peft', action='store_true', default=True, help='Use PEFT')
+    parser.add_argument('--model_name', type=str, default="meta-llama/Llama-2-7b-hf", help='Name of the model')
+    parser.add_argument('--dataset_name', type=str, default="ultrafeedback", help='Name of the dataset')
     return parser.parse_args()
 
 def get_random_filename(model_name, technique):
@@ -25,10 +27,9 @@ def save_results(results, model_name, technique):
         json.dump(results, file, indent=4)
     print(f"Results saved to {results_path}")
 
-def run_training_script(script_path, args, additional_args):
+def run_training_script(script_path, additional_args):
     cmd = ['python', script_path] + additional_args
-    if args.use_peft:
-        cmd.extend(['--use_peft', '--lora_r', '64', '--lora_alpha', '16'])
+    # cmd.extend(['--use_peft', '--lora_r', '64', '--lora_alpha', '16'])
 
     result = subprocess.run(cmd, capture_output=True, text=True)
     if result.returncode != 0:
@@ -36,77 +37,39 @@ def run_training_script(script_path, args, additional_args):
         return None
     return json.loads(result.stdout)
 
+def execute_strategy(strategy, model_name, dataset_name):
+    script_info = {
+        'sft': {'script': 'sft.py', 'default_args': ['--dataset_name', dataset_name, '--model_id', strategy]},
+        'dpo': {'script': 'dpo.py', 'default_args': ['--dataset_name', dataset_name, '--model_id', strategy]},
+        'kto': {'script': 'kto.py', 'default_args': ['--dataset_name', dataset_name, '--model_id', strategy]}
+    }.get(strategy)
+
+    if script_info:
+        print(f"Starting training with {strategy.upper()} strategy...")
+        results = run_training_script(script_info['script'], script_info['default_args'])
+        if results:
+            save_results(results, model_name, strategy)
+        else:
+            print(f"Failed to run strategy: {strategy}")
+    else:
+        print(f"Invalid strategy selected: {strategy}")
+
 def main():
     args = parse_arguments()
-    
     strategies = args.strategies
-    strategies = ['dpo']
-    # Dictionary to map strategy to corresponding script path and default arguments
-    strategy_scripts = {
-        'sft': {
-            'script': 'src/sft.py',
-            'default_args': [
-                '--model_name_or_path', 'meta-llama/Llama-2-7b-hf',
-                '--report_to', 'wandb',
-                '--learning_rate', '1.41e-5',
-                '--per_device_train_batch_size', '64',
-                '--gradient_accumulation_steps', '16',
-                '--output_dir', './models/SFT',
-                '--logging_steps', '1',
-                '--num_train_epochs', '3',
-                '--max_steps', '-1',
-                '--push_to_hub',
-                '--gradient_checkpointing'
-            ]
-        },
-        'dpo': {
-            'script': 'src/dpo.py',
-            'default_args': [
-                '--dataset_name', 'trl-internal-testing/hh-rlhf-helpful-base-trl-style',
-                '--model_name_or_path', 'meta-llama/Llama-2-7b-hf',
-                '--per_device_train_batch_size', '4',
-                '--learning_rate', '1e-3',
-                '--gradient_accumulation_steps', '1',
-                '--logging_steps', '10',
-                '--eval_steps', '500',
-                '--output_dir', './models/DPO',
-                '--warmup_steps', '150',
-                '--report_to', 'wandb',
-                '--bf16',
-                '--logging_first_step',
-                '--no_remove_unused_columns'
-            ]
-        },
-        'kto': {
-            'script': 'src/kto.py',
-            'default_args': [
-                '--model_name_or_path', 'meta-llama/Llama-2-7b-hf',
-                '--per_device_train_batch_size', '16',
-                '--num_train_epochs', '1',
-                '--learning_rate', '1e-5',
-                '--lr_scheduler_type', 'cosine',
-                '--gradient_accumulation_steps', '1',
-                '--logging_steps', '10',
-                '--eval_steps', '500',
-                '--output_dir', './models/KTO',
-                '--warmup_ratio', '0.1',
-                '--report_to', 'wandb',
-                '--bf16',
-                '--logging_first_step'
-            ]
-        }
-    }
+    strategies = ['kto']
+    model_name = args.model_name
+    dataset_name = args.dataset_name
 
-    # Execute the training strategies
+    # Use multiprocessing to run strategies in parallel
+    processes = []
     for strategy in strategies:
-        if strategy in strategy_scripts:
-            script_info = strategy_scripts[strategy]
-            print(f"Starting training with {strategy.upper()} strategy...")
-            results = run_training_script(script_info['script'], args, script_info['default_args'])
-            if results:
-                save_results(results, script_info['default_args'][1], strategy)
-        else:
-            print(f"Invalid strategy selected: {strategy}")
+        p = multiprocessing.Process(target=execute_strategy, args=(strategy, model_name, dataset_name))
+        p.start()
+        processes.append(p)
+
+    for p in processes:
+        p.join()
 
     # Run evaluation
     eval_cmd = ['python', 'src/eval.py']

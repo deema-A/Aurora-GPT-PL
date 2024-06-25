@@ -1,0 +1,9 @@
+task_fewshot_pairs:
+  - task: "arc_challenge"
+    few_shots: 25
+  - task: "mmlu"
+    few_shots: 5
+  - task: "truthfulqa"
+    few_shots: 0
+
+bf16: True

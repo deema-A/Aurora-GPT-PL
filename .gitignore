@@ -1,7 +1,6 @@
 slurm/
 __pycache__/
-wandb/
-bin/
-src/
 src/__pycache__/
+wandb/
 *.log
+models/

@@ -10,11 +10,6 @@ def train_model(model_id, dataset_name):
     # Load Tokenizer from the hub
     tokenizer = AutoTokenizer.from_pretrained(model_id)
 
-    dataset_functions = {
-        "ultrafeedback": get_ultrafeedback
-    }
-    dataset = dataset_functions[dataset_name](tokenizer) # depends on the user passed dataset
-
     # BitsAndBytesConfig int-4 config
     bnb_config = BitsAndBytesConfig(
         load_in_4bit=True, bnb_4bit_use_double_quant=True, bnb_4bit_quant_type="nf4", bnb_4bit_compute_dtype=torch.bfloat16
@@ -35,6 +30,11 @@ def train_model(model_id, dataset_name):
     tokenizer.truncation_side = 'left' # to prevent cutting off last generation
 
     model, tokenizer = setup_chat_format(model, tokenizer)
+    
+    dataset_functions = {
+        "ultrafeedback": get_ultrafeedback
+    }
+    dataset = dataset_functions[dataset_name](tokenizer) # depends on the user passed dataset
 
     # LoRA config based on QLoRA paper
     peft_config = LoraConfig(

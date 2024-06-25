@@ -39,9 +39,9 @@ def run_training_script(script_path, additional_args):
 
 def execute_strategy(strategy, model_name, dataset_name):
     script_info = {
-        'sft': {'script': 'sft.py', 'default_args': ['--dataset_name', dataset_name, '--model_id', strategy]},
-        'dpo': {'script': 'dpo.py', 'default_args': ['--dataset_name', dataset_name, '--model_id', strategy]},
-        'kto': {'script': 'kto.py', 'default_args': ['--dataset_name', dataset_name, '--model_id', strategy]}
+        'sft': {'script': 'src/sft.py', 'default_args': ['--dataset_name', dataset_name, '--model_id', strategy]},
+        'dpo': {'script': 'src/dpo.py', 'default_args': ['--dataset_name', dataset_name, '--model_id', strategy]},
+        'kto': {'script': 'src/kto.py', 'default_args': ['--dataset_name', dataset_name, '--model_id', strategy]}
     }.get(strategy)
 
     if script_info:

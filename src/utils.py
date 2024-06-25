@@ -86,4 +86,4 @@ def get_ultrafeedback_kto(tokenizer):
         example["completion"] = tokenizer.apply_chat_template(example["completion"], tokenize=False)
         return example
 
-    return dataset.map(get_ultrafeedback_kto)
+    return dataset #dataset.map(get_ultrafeedback_kto)

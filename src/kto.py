@@ -8,7 +8,6 @@ import argparse
 def train_model(model_id, dataset_name):
 
     tokenizer = AutoTokenizer.from_pretrained(model_id)
-    dataset = get_ultrafeedback_kto(tokenizer)
 
     # BitsAndBytesConfig int-4 config
     bnb_config = BitsAndBytesConfig(
@@ -29,6 +28,8 @@ def train_model(model_id, dataset_name):
 
     # If we are aligning a base model, we use ChatML as the default template
     model, tokenizer = setup_chat_format(model, tokenizer)
+    
+    dataset = get_ultrafeedback_kto(tokenizer)
 
     # Initialize the KTO trainer
     peft_config = LoraConfig(

@@ -1,4 +1,4 @@
-# Model Alignment Pipeline
+# Model Alignment Pipeline [WIP]
 
 This repository provides a pipeline for applying alignment techniques such as Supervied Fine-Tuning (SFT), Direct Preference Optimization (DPO), and Kahneman-Tversky Optimization (KTO) on Hugging Face-supported models (for now). It is currently supporting ultrafeedback dataset and operates with QLORA 4-bit quantization on a single GPU.
 

@@ -1,4 +1,4 @@
-# slurm/
+slurm/
 slurm/logs/
 __pycache__/
 src/__pycache__/

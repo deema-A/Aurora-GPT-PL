@@ -4,7 +4,6 @@ import random
 import os
 from datetime import datetime
 import subprocess
-import multiprocessing
 
 def parse_arguments():
     parser = argparse.ArgumentParser(description='Pipeline for training and evaluating Hugging Face models.')
@@ -57,19 +56,12 @@ def execute_strategy(strategy, model_name, dataset_name):
 def main():
     args = parse_arguments()
     strategies = args.strategies
-    strategies = ['kto']
     model_name = args.model_name
     dataset_name = args.dataset_name
 
-    # Use multiprocessing to run strategies in parallel
-    processes = []
+    # Run strategies sequentially
     for strategy in strategies:
-        p = multiprocessing.Process(target=execute_strategy, args=(strategy, model_name, dataset_name))
-        p.start()
-        processes.append(p)
-
-    for p in processes:
-        p.join()
+        execute_strategy(strategy, model_name, dataset_name)
 
     # Run evaluation
     eval_cmd = ['python', 'src/eval.py']

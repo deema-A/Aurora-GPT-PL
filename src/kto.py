@@ -1,5 +1,5 @@
 from transformers import AutoModelForCausalLM, AutoTokenizer, TrainingArguments, BitsAndBytesConfig
-from trl import KTOTrainer, setup_chat_format
+from trl import KTOTrainer, setup_chat_format, KTOConfig
 from peft import LoraConfig, prepare_model_for_kbit_training, get_peft_model
 from utils import *
 import torch
@@ -33,9 +33,9 @@ def train_model(model_id, dataset_name):
 
     # Initialize the KTO trainer
     peft_config = LoraConfig(
-        lora_alpha=128,
+        lora_alpha=16,
         lora_dropout=0.05,
-        r=256,
+        r=16,
         bias="none",
         target_modules="all-linear",
         task_type="CAUSAL_LM", 
@@ -50,10 +50,9 @@ def train_model(model_id, dataset_name):
 
     # Extract the first word of the second part of the model ID
     model_name_part = model_id.split('/')[1].split('-')[0]
-
-    training_args = TrainingArguments(
+    training_args = KTOConfig(
         output_dir=f"./models/KTO/{model_name_part}_{dataset_name}",
-        per_device_train_batch_size=2,
+        per_device_train_batch_size=8,
         max_steps=3,
         num_train_epochs=1,                     # number of training epochs
         lr_scheduler_type="cosine",             # use cosine learning rate scheduler
@@ -61,11 +60,11 @@ def train_model(model_id, dataset_name):
         gradient_accumulation_steps=1,
         learning_rate=1e-4,
         eval_strategy="steps",
-        beta=0.1,
+        # beta=0.1,
         logging_steps=10,
         eval_steps=500,                        # when to evaluate
         warmup_ratio=0.1,                      # warmup ratio based on QLoRA paper
-        report_to="wanb",                      # report metrics to wanb
+        report_to="wandb",                      # report metrics to wanb
         logging_first_step=True,
         bf16=True,                             # use bfloat16 precision
     )
@@ -84,7 +83,7 @@ def train_model(model_id, dataset_name):
 
     # free the memory again
     del model
-    del trainer
+    del kto_trainer
     torch.cuda.empty_cache()
 
 def parse_arguments():

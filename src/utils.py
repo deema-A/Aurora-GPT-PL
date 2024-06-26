@@ -82,8 +82,12 @@ def get_ultrafeedback_kto(tokenizer):
 
     # Apply chat template
     def get_ultrafeedback_kto(example):
-        example["prompt"] = tokenizer.apply_chat_template(example["prompt"], tokenize=False)
-        example["completion"] = tokenizer.apply_chat_template(example["completion"], tokenize=False)
+        # example["prompt"] = tokenizer.apply_chat_template(example["prompt"], tokenize=False)
+        # example["completion"] = tokenizer.apply_chat_template(example["completion"], tokenize=False)
+        # return example
+
+        example["prompt"] = f"<|im_start|>user\n{example['prompt']}<|im_end|>\n<|im_start|>assistant\n"
+        example["completion"] = f"{example['completion']}<|im_end|>"
         return example
 
-    return dataset #dataset.map(get_ultrafeedback_kto)
+    return dataset.map(get_ultrafeedback_kto)

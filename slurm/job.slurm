@@ -13,4 +13,4 @@ source ~/miniconda3/etc/profile.d/conda.sh
 conda activate base
 
 # python /home/dalnuhait/Aurora-GPT-PL/pipeline.py
-python /home/dalnuhait/Aurora-GPT-PL/src/kto.py --model_id "meta-llama/Llama-2-7b-hf" --dataset_name ultrafeedback
+python /home/dalnuhait/Aurora-GPT-PL/src/dpo.py --model_id "meta-llama/Llama-2-7b-hf" --dataset_name ultrafeedback

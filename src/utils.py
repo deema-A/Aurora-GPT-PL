@@ -75,7 +75,7 @@ def get_ultrafeedback_dpo(tokenizer):
             "rejected": tokenizer.apply_chat_template(rejected_messages, tokenize=False)
         }
     dataset = load_dataset('argilla/ultrafeedback-binarized-preferences-cleaned', split='train')
-    dataset = dataset.map(format_ultrafeedback_dpo, remove_columns=dataset.features, fn_kwargs={"tokenizer": tokenizer})
+    return dataset.map(format_ultrafeedback_dpo, remove_columns=dataset.features, fn_kwargs={"tokenizer": tokenizer})
 
 
 def get_ultrafeedback_kto(): 

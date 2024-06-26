@@ -1,5 +1,5 @@
-from transformers import AutoTokenizer, AutoModelForCausalLM, BitsAndBytesConfig, TrainingArguments
-from trl import DPOTrainer, setup_chat_format
+from transformers import AutoTokenizer, AutoModelForCausalLM, BitsAndBytesConfig
+from trl import DPOTrainer, setup_chat_format, DPOConfig
 from peft import LoraConfig, prepare_model_for_kbit_training, get_peft_model
 import torch
 from utils import *
@@ -23,6 +23,7 @@ def train_model(model_id, dataset_name):
       torch_dtype=torch.bfloat16,
       quantization_config=bnb_config
   )
+
   tokenizer.pad_token = tokenizer.eos_token
   tokenizer.padding_side = 'left' # to prevent errors with FA
   tokenizer.truncation_side = 'left' # to prevent cutting off last generation
@@ -52,7 +53,7 @@ def train_model(model_id, dataset_name):
   model = get_peft_model(model, peft_config)
 
   model_name_part = model_id.split('/')[1].split('-')[0]
-  args = TrainingArguments(
+  args = DPOConfig(
       output_dir=f"./models/DPO/{model_name_part}_{dataset_name}",   # directory to save and repository id
       num_train_epochs=1,                     # number of training epochs
       per_device_train_batch_size=12,         # batch size per device during training
@@ -72,18 +73,14 @@ def train_model(model_id, dataset_name):
       bf16=True,                              # use bfloat16 precision
       tf32=True,                              # use tf32 precision
       push_to_hub=False,                      # push model to hub
-      report_to="wanb",                       # report metrics to wanb
+      model_init_kwargs = None,
+      report_to="wandb",                       # report metrics to wanb
   )
 
   dpo_args = {
       "beta": 0.1,                            # The beta factor in DPO loss. Higher beta means less divergence
       "loss_type": "sigmoid"                  # The loss type for DPO.
   }
-
-  model_kwargs = dict(
-      use_flash_attention_2=True,
-      torch_dtype=torch.bfloat16,
-    )
 
   trainer = DPOTrainer(
       model,

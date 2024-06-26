@@ -38,3 +38,4 @@ To run a specific technique:
 python pipeline.py --strategies kto model_name "meta-llama/Llama-2-7b-hf" --dataset_name ultrafeedback
 ```
 
+The evaluation instructions will be added shortly 

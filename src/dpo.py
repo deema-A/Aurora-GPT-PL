@@ -37,9 +37,9 @@ def train_model(model_id, dataset_name):
 
   # LoRA config based on QLoRA paper & Sebastian Raschka experiment
   peft_config = LoraConfig(
-          lora_alpha=128,
+          lora_alpha=16,
           lora_dropout=0.05,
-          r=256,
+          r=16,
           bias="none",
           target_modules="all-linear",
           task_type="CAUSAL_LM", 
@@ -71,8 +71,8 @@ def train_model(model_id, dataset_name):
       evaluation_strategy="steps",            # evaluate every 1000 steps
       eval_steps=700,                         # when to evaluate
       bf16=True,                              # use bfloat16 precision
-      tf32=True,                              # use tf32 precision
-      push_to_hub=False,                      # push model to hub
+    #   tf32=True,                              # use tf32 precision
+    #   push_to_hub=False,                      # push model to hub
       model_init_kwargs = None,
       report_to="wandb",                       # report metrics to wanb
   )

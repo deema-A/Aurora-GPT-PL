@@ -38,9 +38,9 @@ def train_model(model_id, dataset_name):
 
     # LoRA config based on QLoRA paper
     peft_config = LoraConfig(
-            lora_alpha=128,
+            lora_alpha=16,
             lora_dropout=0.05,
-            r=256,
+            r=16,
             bias="none",
             target_modules="all-linear",
             task_type="CAUSAL_LM", 
@@ -66,8 +66,8 @@ def train_model(model_id, dataset_name):
         save_strategy="epoch",
         learning_rate=2e-4,
         bf16=True,
-        fp16=False,
-        tf32=True,
+        # fp16=False,
+        # tf32=True,
         max_grad_norm=0.3,
         warmup_ratio=0.03,
         lr_scheduler_type="constant",

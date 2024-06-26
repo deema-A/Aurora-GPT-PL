@@ -89,7 +89,7 @@ def train_model(model_id, dataset_name):
       model,
       ref_model=None, # set to none since we use peft
       peft_config=peft_config,
-      model_init_kwargs = model_kwargs,
+      model_init_kwargs = None,
       args=args,
       train_dataset=dataset,
       tokenizer=tokenizer,

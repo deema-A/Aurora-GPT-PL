@@ -3,7 +3,6 @@ import os
 from peft.tuners.lora import LoraLayer
 from datasets import load_dataset
 
-
 def load_yaml_config(file_path):
     with open(file_path, 'r') as file:
         config = yaml.safe_load(file)
@@ -49,6 +48,7 @@ def get_ultrafeedback(tokenizer):
   dataset = load_dataset('argilla/ultrafeedback-binarized-preferences-cleaned', split='train')
   return dataset.map(format_ultrafeedback, remove_columns=dataset.features, fn_kwargs={"tokenizer": tokenizer})
 
+
 def get_ultrafeedback_dpo(tokenizer):  
     def format_ultrafeedback_dpo(example, tokenizer, default_system_message=DEFAULT_SYSTEM_MESSAGE):
     
@@ -77,15 +77,12 @@ def get_ultrafeedback_dpo(tokenizer):
     dataset = load_dataset('argilla/ultrafeedback-binarized-preferences-cleaned', split='train')
     dataset = dataset.map(format_ultrafeedback_dpo, remove_columns=dataset.features, fn_kwargs={"tokenizer": tokenizer})
 
-def get_ultrafeedback_kto(tokenizer): 
+
+def get_ultrafeedback_kto(): 
     dataset = load_dataset("argilla/ultrafeedback-binarized-preferences-cleaned-kto", split="train")
 
     # Apply chat template
     def get_ultrafeedback_kto(example):
-        # example["prompt"] = tokenizer.apply_chat_template(example["prompt"], tokenize=False)
-        # example["completion"] = tokenizer.apply_chat_template(example["completion"], tokenize=False)
-        # return example
-
         example["prompt"] = f"<|im_start|>user\n{example['prompt']}<|im_end|>\n<|im_start|>assistant\n"
         example["completion"] = f"{example['completion']}<|im_end|>"
         return example
